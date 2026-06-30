@@ -65,3 +65,25 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/vintage-house-reborn:latest
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/vintage-house-reborn
+            git pull origin main
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > env/.env
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> env/.env
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> env/.env
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> env/.env
+            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> env/.env
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
