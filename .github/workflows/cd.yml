@@ -99,8 +99,8 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> env/.env
             echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> env/.env
             echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> env/.env
-            docker-compose -f docker-compose.prod.yml pull
-            docker-compose -f docker-compose.prod.yml up -d
+            docker-compose --env-file env/.env -f docker-compose.prod.yml pull
+            docker-compose --env-file env/.env -f docker-compose.prod.yml up -d
 
       - name: Remove GitHub Actions IP from Security Group
         if: always()
