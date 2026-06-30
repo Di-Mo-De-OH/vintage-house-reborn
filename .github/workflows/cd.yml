@@ -92,6 +92,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            if ! docker compose version &> /dev/null; then
+              sudo curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
             cd ~/vintage-house-reborn
             git pull origin main
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > env/.env
@@ -99,8 +103,8 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> env/.env
             echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> env/.env
             echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> env/.env
-            docker-compose --env-file env/.env -f docker-compose.prod.yml pull
-            docker-compose --env-file env/.env -f docker-compose.prod.yml up -d
+            docker compose --env-file env/.env -f docker-compose.prod.yml pull
+            docker compose --env-file env/.env -f docker-compose.prod.yml up -d
 
       - name: Remove GitHub Actions IP from Security Group
         if: always()
