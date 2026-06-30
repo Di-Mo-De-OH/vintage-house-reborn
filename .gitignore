@@ -1,0 +1,22 @@
+# 가상 환경 (Virtual Environments)
+.venv/
+venv/
+
+# 파이썬 캐시 (Python Cache)
+__pycache__/
+*.py[cod]
+
+# 환경 변수 및 데이터베이스
+.env
+db.sqlite3
+
+# 빌드 및 패키지
+dist/
+build/
+*.egg-info/
+
+# IDE 설정 (VS Code, PyCharm)
+.vscode/
+.idea/
+
+.DS_Store

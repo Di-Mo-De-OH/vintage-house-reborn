@@ -1,0 +1,25 @@
+[project]
+name = "vintage-house-reborn"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.18.5",
+    "asyncpg>=0.31.0",
+    "fastapi>=0.138.2",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.14.2",
+    "redis>=8.0.1",
+    "sqlalchemy[asyncio]>=2.0.51",
+    "uvicorn>=0.49.0",
+]
+
+[dependency-groups]
+dev = [
+    "black>=26.5.1",
+    "coverage>=7.14.3",
+    "mypy>=2.1.0",
+    "pytest>=9.1.1",
+    "ruff>=0.15.20",
+]
