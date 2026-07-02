@@ -16,7 +16,7 @@ class RefreshToken(BaseModel):
     __tablename__ = "refresh_tokens"
     user_id: Mapped[str] = mapped_column(
         String(26),
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         index=True,
     )
     token_hash: Mapped[str] = mapped_column(
