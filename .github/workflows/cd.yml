@@ -103,8 +103,8 @@ jobs:
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> env/.env
             echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> env/.env
             echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> env/.env
-            docker-compose --env-file env/.env -f docker-compose.prod.yml pull
-            docker-compose --env-file env/.env -f docker-compose.prod.yml up -d
+            docker compose --env-file env/.env -f docker-compose.prod.yml pull
+            docker compose --env-file env/.env -f docker-compose.prod.yml up -d
 
       - name: Remove GitHub Actions IP from Security Group
         if: always()
@@ -113,3 +113,11 @@ jobs:
           aws ec2 revoke-security-group-ingress \
             --group-id ${{ secrets.SG_ID }} \
             --protocol tcp --port 22 --cidr $MY_IP/32
+
+      - name: Discord 알림
+        if: always()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_CD }}
+          status: ${{ job.status }}
+          title: "배포 결과"
