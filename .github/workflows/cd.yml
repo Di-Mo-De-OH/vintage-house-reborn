@@ -116,4 +116,7 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_CD }}
           status: ${{ job.status }}
-          title: "배포 결과"
+          title: "🚀 배포 결과"
+          description: "vintage-house-reborn 배포가 완료됐어요"
+          color: 0x00ff00
+          username: "배포봇"
