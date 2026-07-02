@@ -30,6 +30,14 @@ app/
 └── main.py
 ```
 
+## 브랜치 전략
+
+```
+main        ← 실서버 배포
+  └── develop    ← 로컬 테스트
+        └── feature/*  ← 기능 개발
+```
+
 ## 시작하기
 
 **환경변수 설정**
@@ -61,5 +69,5 @@ make check    # 전체 검사 (format + type + test)
 
 | 워크플로우 | 트리거 | 역할 |
 |-----------|--------|------|
-| CI | develop, main PR | lint + test 자동 검사 |
-| CD | main push | 빌드 → Docker Hub → EC2 자동 배포 |
+| CI | develop, main PR | lint + test 자동 검사 + Discord 알림 |
+| CD | main push | 빌드 → Docker Hub → EC2 자동 배포 + Discord 알림 |
