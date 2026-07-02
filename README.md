@@ -4,13 +4,13 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 
 ## 기술 스택
 
-- **Framework**: FastAPI
+- **Framework**: FastAPI (Python 3.13)
 - **Database**: PostgreSQL
 - **Cache**: Redis
-- **ORM**: SQLAlchemy (async)
-- **Migration**: Alembic
+- **ORM**: SQLAlchemy (async) + Alembic
 - **결제**: 토스페이먼츠
-- **Infra**: Docker, Docker Compose
+- **패키지 관리**: uv
+- **Infra**: Docker, Docker Compose, AWS EC2
 
 ## 주요 기능
 
@@ -36,7 +36,7 @@ app/
 
 ```bash
 cp env/example.env env/.env
-# env/.env 파일 수정
+# env/.env 파일에 실제 값 입력
 ```
 
 **서버 실행**
@@ -45,7 +45,7 @@ cp env/example.env env/.env
 docker compose up --build
 ```
 
-서버 주소: `http://localhost:8001`
+로컬 서버: `http://localhost:8001`
 
 API 문서: `http://localhost:8001/docs`
 
@@ -56,3 +56,10 @@ make format   # 코드 포맷 (black, ruff)
 make type     # 타입 검사 (mypy)
 make check    # 전체 검사 (format + type + test)
 ```
+
+## CI/CD
+
+| 워크플로우 | 트리거 | 역할 |
+|-----------|--------|------|
+| CI | develop, main PR | lint + test 자동 검사 |
+| CD | main push | 빌드 → Docker Hub → EC2 자동 배포 |
