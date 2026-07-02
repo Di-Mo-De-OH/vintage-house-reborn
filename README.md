@@ -24,9 +24,16 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 ```
 app/
 ├── auth/           # 회원가입, 로그인
-├── products/       # 상품 CRUD
-├── cart/           # 장바구니
-├── payments/       # 결제
+│   ├── router.py   # 엔드포인트
+│   ├── service.py  # 비즈니스 로직
+│   ├── models.py   # SQLAlchemy 모델
+│   └── schemas.py  # Pydantic 스키마
+├── products/       # 상품 CRUD (auth와 동일 구조)
+├── cart/           # 장바구니 (auth와 동일 구조)
+├── payments/       # 결제 (auth와 동일 구조)
+├── core/           # 공용 기술 (설정, DB 연결 등)
+│   ├── config.py   # 환경변수 설정 (pydantic-settings)
+│   └── database.py # SQLAlchemy async engine/session, BaseModel
 └── main.py
 ```
 
@@ -56,6 +63,16 @@ docker compose up --build
 로컬 서버: `http://localhost:8001`
 
 API 문서: `http://localhost:8001/docs`
+
+## DB 마이그레이션 (Alembic)
+
+```bash
+# 모델 변경 감지 후 마이그레이션 파일 생성
+docker compose exec fastapi uv run alembic revision --autogenerate -m "메시지"
+
+# 마이그레이션 적용
+docker compose exec fastapi uv run alembic upgrade head
+```
 
 ## 개발 명령어
 
