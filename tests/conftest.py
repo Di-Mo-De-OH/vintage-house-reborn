@@ -1,7 +1,6 @@
 import pytest
 
 
-
 @pytest.fixture
 async def test_read_root(client):
     response = await client.get("/")
