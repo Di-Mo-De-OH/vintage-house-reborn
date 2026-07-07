@@ -1,7 +1,9 @@
-from app.core.database import BaseModel
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, ForeignKey, Integer, Enum
 import enum
+
+from sqlalchemy import Enum, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.database import BaseModel
 
 
 class OrderStatus(str, enum.Enum):
