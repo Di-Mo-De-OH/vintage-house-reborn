@@ -1,9 +1,12 @@
 import pytest
+from httpx import ASGITransport, AsyncClient
+
+from app.main import app
 
 
 @pytest.fixture
-async def test_read_root(client):
-    response = await client.get("/")
-
-    assert response.status_code == 200
-    assert response.json() == {"hello": "fastapi", "test": "이거잘 반영돼는거 맞죠?"}
+async def client() -> AsyncClient:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac

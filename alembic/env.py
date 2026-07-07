@@ -5,15 +5,13 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
-
-from app.core.config import settings
-from app.core.database import BaseModel
-
 # alembic이 테이블을 인식하려면 모델이 반드시 import돼 있어야 함
 import app.auth.models  # noqa: F401
-import app.products.models  # noqa: F401
 import app.payments.models  # noqa: F401
+import app.products.models  # noqa: F401
+from alembic import context
+from app.core.config import settings
+from app.core.database import BaseModel
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
