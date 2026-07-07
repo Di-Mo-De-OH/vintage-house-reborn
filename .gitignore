@@ -10,6 +10,9 @@ __pycache__/
 .env
 db.sqlite3
 
+# 테스트 커버리지
+.coverage
+
 # 빌드 및 패키지
 dist/
 build/
