@@ -103,6 +103,10 @@ jobs:
             echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> env/.env
             echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" >> env/.env
             echo "REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}" >> env/.env
+            echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> env/.env
+            echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> env/.env
+            echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> env/.env
+            echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> env/.env
             docker-compose --env-file env/.env -f docker-compose.prod.yml pull
             docker-compose --env-file env/.env -f docker-compose.prod.yml up -d
 
