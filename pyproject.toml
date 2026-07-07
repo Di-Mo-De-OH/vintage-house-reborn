@@ -24,11 +24,15 @@ dev = [
     "coverage>=7.14.3",
     "mypy>=2.1.0",
     "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
     "ruff>=0.15.20",
 ]
 
 [tool.black]
 target-version = ["py313"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
 
 
 [tool.mypy]

@@ -1,13 +1,15 @@
 from collections.abc import AsyncGenerator
 from datetime import datetime
+
+from sqlalchemy import DateTime, String, func
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from app.core.config import settings
 from ulid import ULID
-from sqlalchemy import String, DateTime, func
+
+from app.core.config import settings
 
 engine = create_async_engine(settings.DATABASE_URL, echo=True)
-# 실제로 어떤 db에 연결할지 나타냄 echo 값은 orm 발생시 어떤 로우 쿼리를 발생시키는지 보여줌
+#  echo=True: ORM이 실행하는 실제 SQL 쿼리를 로그로 출력
 
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,

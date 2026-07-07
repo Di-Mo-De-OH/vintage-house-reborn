@@ -98,11 +98,20 @@ jobs:
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" > env/.env
             echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> env/.env
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> env/.env
-            echo "REDIS_URL=${{ secrets.REDIS_URL }}" >> env/.env
+            echo "POSTGRES_HOST=${{ secrets.POSTGRES_HOST }}" >> env/.env
+            echo "POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}" >> env/.env
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> env/.env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> env/.env
+            echo "REDIS_DB=${{ secrets.REDIS_DB }}" >> env/.env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> env/.env
             echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> env/.env
             echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> env/.env
             echo "ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}" >> env/.env
             echo "REFRESH_TOKEN_EXPIRE_DAYS=${{ secrets.REFRESH_TOKEN_EXPIRE_DAYS }}" >> env/.env
+            echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> env/.env
+            echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> env/.env
+            echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> env/.env
+            echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> env/.env
             docker-compose --env-file env/.env -f docker-compose.prod.yml pull
             docker-compose --env-file env/.env -f docker-compose.prod.yml up -d
 

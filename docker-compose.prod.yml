@@ -13,8 +13,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    env_file:
+      - env/.env
+    command: sh -c "redis-server --requirepass $$REDIS_PASSWORD"
     restart: always
 
   fastapi:

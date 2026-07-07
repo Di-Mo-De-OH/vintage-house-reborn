@@ -1,7 +1,9 @@
-from app.core.database import BaseModel
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Text, Integer, Enum, ForeignKey
 import enum
+
+from sqlalchemy import Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.core.database import BaseModel
 
 
 class Category(str, enum.Enum):
