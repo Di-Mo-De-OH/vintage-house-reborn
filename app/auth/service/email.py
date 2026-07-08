@@ -27,9 +27,7 @@ async def send_verification_email(email: str) -> None:
             )
 
         await redis_client.set(EmailRedis.code(email), code, ex=CODE_EXPIRE_SECONDS)
-        await redis_client.set(
-            EmailRedis.cooldown(email), "1", ex=RESEND_COOLDOWN_SECONDS
-        )
+        await redis_client.set(EmailRedis.cooldown(email), "1", ex=RESEND_COOLDOWN_SECONDS)
     except RedisError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -80,9 +78,7 @@ async def verify_email(db: AsyncSession, email: str, code: str) -> VerifyEmailRe
 
     token = generate_token()
     try:
-        await redis_client.set(
-            EmailRedis.verify(token), email, ex=VERIFY_EXPIRE_SECONDS
-        )
+        await redis_client.set(EmailRedis.verify(token), email, ex=VERIFY_EXPIRE_SECONDS)
         await redis_client.delete(EmailRedis.code(email))
         await redis_client.delete(EmailRedis.cooldown(email))
     except RedisError:

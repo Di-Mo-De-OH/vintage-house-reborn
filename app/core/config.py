@@ -43,9 +43,7 @@ class Settings(BaseSettings):
     @property
     def REDIS_URL(self) -> str:
         password = quote(self.REDIS_PASSWORD, safe="")
-        return (
-            f"redis://:{password}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-        )
+        return f"redis://:{password}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
 
 
 @lru_cache
