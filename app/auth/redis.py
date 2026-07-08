@@ -6,3 +6,7 @@ class EmailRedis:
     @classmethod
     def verify(cls, token: str) -> str:
         return f"email:verify:{token}"
+
+    @classmethod
+    def cooldown(cls, email: str) -> str:
+        return f"email:cooldown:{email}"
