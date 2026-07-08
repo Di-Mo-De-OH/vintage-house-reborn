@@ -29,10 +29,10 @@ app/
 각 앱 내부 구조:
 ```
 {app}/
-├── router.py    # 엔드포인트
-├── service.py   # 비즈니스 로직
-├── models.py    # SQLAlchemy 모델
-└── schemas.py   # Pydantic 스키마
+├── router.py       # 엔드포인트
+├── service/        # 비즈니스 로직 (기능별로 파일 분리, 예: service/email.py)
+├── models.py       # SQLAlchemy 모델
+└── schemas.py      # Pydantic 스키마
 ```
 
 `core/` 구조:

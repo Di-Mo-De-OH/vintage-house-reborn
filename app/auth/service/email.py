@@ -1,7 +1,8 @@
 import aiosmtplib
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from redis.exceptions import RedisError
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models import User
@@ -20,7 +21,10 @@ async def send_verification_email(email: str) -> None:
     code = generate_6digits_safe()
     try:
         if await redis_client.exists(EmailRedis.cooldown(email)):
-            raise HTTPException(status_code=429, detail="잠시 후 다시 시도해주세요.")
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="잠시 후 다시 시도해주세요.",
+            )
 
         await redis_client.set(EmailRedis.code(email), code, ex=CODE_EXPIRE_SECONDS)
         await redis_client.set(
@@ -28,7 +32,7 @@ async def send_verification_email(email: str) -> None:
         )
     except RedisError:
         raise HTTPException(
-            status_code=503,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.",
         )
     try:
@@ -41,7 +45,7 @@ async def send_verification_email(email: str) -> None:
         await redis_client.delete(EmailRedis.code(email))
         await redis_client.delete(EmailRedis.cooldown(email))
         raise HTTPException(
-            status_code=503,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.",
         )
 
@@ -51,16 +55,28 @@ async def verify_email(db: AsyncSession, email: str, code: str) -> VerifyEmailRe
         verify_code = await redis_client.get(EmailRedis.code(email))
     except RedisError:
         raise HTTPException(
-            status_code=503,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.",
         )
 
     if verify_code is None or verify_code != code:
-        raise HTTPException(status_code=400, detail="입력해 주신 코드가 다릅니다.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="입력해 주신 코드가 다릅니다.",
+        )
+    try:
+        user = await db.execute(select(User).where(User.email == email))
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.",
+        )
 
-    user = await db.execute(select(User).where(User.email == email))
     if user.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=409, detail="이미 가입된 이메일 입니다.")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="이미 가입된 이메일 입니다.",
+        )
 
     token = generate_token()
     try:
@@ -71,7 +87,7 @@ async def verify_email(db: AsyncSession, email: str, code: str) -> VerifyEmailRe
         await redis_client.delete(EmailRedis.cooldown(email))
     except RedisError:
         raise HTTPException(
-            status_code=503,
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.",
         )
     return VerifyEmailResponse(verify_token=token)
