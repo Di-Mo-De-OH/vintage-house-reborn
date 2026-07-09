@@ -33,8 +33,6 @@ class Product(BaseModel):
 
 class ProductImage(BaseModel):
     __tablename__ = "product_images"
-    product_id: Mapped[str] = mapped_column(
-        String(26), ForeignKey("products.id", ondelete="CASCADE"), index=True
-    )
+    product_id: Mapped[str] = mapped_column(String(26), ForeignKey("products.id", ondelete="CASCADE"), index=True)
     image_url: Mapped[str] = mapped_column(Text)
     order_number: Mapped[int] = mapped_column(Integer, default=0)

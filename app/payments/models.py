@@ -25,32 +25,22 @@ class PaymentStatus(str, enum.Enum):
 
 class Order(BaseModel):
     __tablename__ = "orders"
-    user_id: Mapped[str] = mapped_column(
-        String(26), ForeignKey("users.id", ondelete="CASCADE"), index=True
-    )
-    status: Mapped[OrderStatus] = mapped_column(
-        Enum(OrderStatus), default=OrderStatus.PENDING
-    )
+    user_id: Mapped[str] = mapped_column(String(26), ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    status: Mapped[OrderStatus] = mapped_column(Enum(OrderStatus), default=OrderStatus.PENDING)
     total_amount: Mapped[int] = mapped_column(Integer)
 
 
 class OrderItem(BaseModel):
     __tablename__ = "order_items"
-    order_id: Mapped[str] = mapped_column(
-        String(26), ForeignKey("orders.id", ondelete="CASCADE"), index=True
-    )
-    product_id: Mapped[str] = mapped_column(
-        String(26), ForeignKey("products.id"), index=True
-    )
+    order_id: Mapped[str] = mapped_column(String(26), ForeignKey("orders.id", ondelete="CASCADE"), index=True)
+    product_id: Mapped[str] = mapped_column(String(26), ForeignKey("products.id"), index=True)
     price_at_purchase: Mapped[int] = mapped_column(Integer)
 
 
 class Payment(BaseModel):
     __tablename__ = "payments"
 
-    order_id: Mapped[str] = mapped_column(
-        String(26), ForeignKey("orders.id", ondelete="CASCADE"), index=True
-    )
+    order_id: Mapped[str] = mapped_column(String(26), ForeignKey("orders.id", ondelete="CASCADE"), index=True)
     toss_payment_key: Mapped[str] = mapped_column(String(255), unique=True)
     status: Mapped[PaymentStatus] = mapped_column(Enum(PaymentStatus))
     amount: Mapped[int] = mapped_column(Integer)

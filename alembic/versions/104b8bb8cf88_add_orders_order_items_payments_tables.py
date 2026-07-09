@@ -73,12 +73,8 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_order_items_order_id"), "order_items", ["order_id"], unique=False
-    )
-    op.create_index(
-        op.f("ix_order_items_product_id"), "order_items", ["product_id"], unique=False
-    )
+    op.create_index(op.f("ix_order_items_order_id"), "order_items", ["order_id"], unique=False)
+    op.create_index(op.f("ix_order_items_product_id"), "order_items", ["product_id"], unique=False)
     op.create_table(
         "payments",
         sa.Column("order_id", sa.String(length=26), nullable=False),
@@ -116,9 +112,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("toss_payment_key"),
     )
-    op.create_index(
-        op.f("ix_payments_order_id"), "payments", ["order_id"], unique=False
-    )
+    op.create_index(op.f("ix_payments_order_id"), "payments", ["order_id"], unique=False)
     # ### end Alembic commands ###
 
 

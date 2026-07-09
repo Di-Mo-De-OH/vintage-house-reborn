@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 
+from app.auth.router import router as auth_router
+
 app = FastAPI()
-
-
-@app.get("/")
-def main() -> dict[str, str]:
-    return {"hello": "fastapi", "test": "이거잘 반영돼는거 맞죠?"}
+app.include_router(auth_router, prefix="/api/v1")
