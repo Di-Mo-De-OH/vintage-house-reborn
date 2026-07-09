@@ -8,7 +8,7 @@ from app.core.redis import redis_client
 
 @pytest.fixture(autouse=True)
 def mock_send_email() -> Generator[AsyncMock, None, None]:
-    with patch("app.auth.service.email.send_email", new_callable=AsyncMock) as mock:
+    with patch("app.auth.services.email.send_email", new_callable=AsyncMock) as mock:
         yield mock
 
 

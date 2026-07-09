@@ -1,10 +1,11 @@
 from fastapi import APIRouter, status
 
 from app.auth.models import User
-from app.auth.responses import SEND_EMAIL_RESPONSES, SIGNUP_RESPONSES, VERIFY_EMAIL_RESPONSES
-from app.auth.schemas import SendEmailRequest, SignUpRequest, SignUpResponse, VerifyEmailRequest, VerifyEmailResponse
-from app.auth.service.email import send_verification_email, verify_email
-from app.auth.service.signup import signup
+from app.auth.schemas.email import SendEmailRequest, VerifyEmailRequest, VerifyEmailResponse
+from app.auth.schemas.signup import SignUpRequest, SignUpResponse
+from app.auth.services.email import send_verification_email, verify_email
+from app.auth.services.signup import signup
+from app.auth.utils.responses import SEND_EMAIL_RESPONSES, SIGNUP_RESPONSES, VERIFY_EMAIL_RESPONSES
 from app.core.database import DbSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])

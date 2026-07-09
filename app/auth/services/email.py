@@ -6,8 +6,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models import User
-from app.auth.redis import EmailRedis
-from app.auth.schemas import VerifyEmailResponse
+from app.auth.schemas.email import VerifyEmailResponse
+from app.auth.utils.redis import EmailRedis
 from app.core.redis import redis_client
 from app.core.utils.email import send_email
 from app.core.utils.security import generate_6digits_safe, generate_token
