@@ -4,7 +4,7 @@ from fastapi import status
 
 from app.core.responses import SERVICE_UNAVAILABLE
 
-SEND_EMAIL_RESPONSES: dict[int, dict[str, Any]] = {
+SEND_EMAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_429_TOO_MANY_REQUESTS: {
         "description": "재발송 쿨다운 중",
         "content": {"application/json": {"example": {"detail": "잠시 후 다시 시도해주세요."}}},
@@ -12,7 +12,7 @@ SEND_EMAIL_RESPONSES: dict[int, dict[str, Any]] = {
     status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
 }
 
-VERIFY_EMAIL_RESPONSES: dict[int, dict[str, Any]] = {
+VERIFY_EMAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_400_BAD_REQUEST: {
         "description": "인증 코드 불일치 또는 만료",
         "content": {"application/json": {"example": {"detail": "입력해 주신 코드가 다릅니다."}}},
