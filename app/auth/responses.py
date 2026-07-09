@@ -23,3 +23,15 @@ VERIFY_EMAIL_RESPONSES: dict[int | str, dict[str, Any]] = {
     },
     status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
 }
+
+SIGNUP_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status.HTTP_404_NOT_FOUND: {
+        "description": "이메일 인증 토큰 없음 또는 만료",
+        "content": {"application/json": {"example": {"detail": "이메일 인증이 필요합니다."}}},
+    },
+    status.HTTP_409_CONFLICT: {
+        "description": "이미 사용 중인 닉네임 또는 이메일",
+        "content": {"application/json": {"example": {"detail": "이미 사용 중인 닉네임 입니다."}}},
+    },
+    status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
+}
