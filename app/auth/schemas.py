@@ -1,6 +1,6 @@
 import re
 
-from pydantic import BaseModel, Field, field_validator,model_validator,ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.core.utils.validators import EmailField, NicknameField, PasswordField
 
@@ -38,6 +38,7 @@ class SignUpRequest(BaseModel):
         if self.password != self.confirm_password:
             raise ValueError("비밀번호 및 확인 비밀번호가 일치하지 않습니다.")
         return self
+
 
 class SignUpResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
