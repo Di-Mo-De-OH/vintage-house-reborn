@@ -29,12 +29,16 @@ app/
 각 앱 내부 구조:
 ```
 {app}/
-├── router.py       # 엔드포인트 (라우팅 배선만, 문서/에러 정의는 responses.py로)
-├── responses.py    # 엔드포인트별 OpenAPI 에러 응답 문서 (status code → 설명/예시)
-├── service/        # 비즈니스 로직 (기능별로 파일 분리, 예: service/email.py)
+├── router.py       # 엔드포인트 (라우팅 배선만, 문서/에러 정의는 utils/responses.py로)
 ├── models.py       # SQLAlchemy 모델
-└── schemas.py      # Pydantic 스키마
+├── schemas/        # 요청/응답 Pydantic 스키마 (기능별로 파일 분리, 예: schemas/signup.py)
+├── services/       # 비즈니스 로직 (기능별로 파일 분리, 예: services/signup.py)
+└── utils/
+    ├── responses.py  # 엔드포인트별 OpenAPI 에러 응답 문서 (status code → 설명/예시)
+    └── redis.py       # Redis 키 네이밍 (앱별로 있는 경우, 예: EmailRedis)
 ```
+
+`router.py`는 앱 전체에서 하나로 유지 (엔드포인트 함수는 배선만 하는 얇은 코드라 파일이 커져도 가독성 문제가 적음). `schemas/`, `services/`는 기능(엔드포인트) 단위로 나눠서, 관련 로직/스키마가 한 파일에 응집되게 함.
 
 `core/` 구조:
 ```
@@ -200,6 +204,7 @@ make check                       # 전체 검사 (format + type + test)
 - ruff lint 규칙: `E`(pycodestyle), `F`(pyflakes), `I`(import 정렬/isort) 활성화 (`pyproject.toml` `[tool.ruff.lint]`)
 - Pydantic 검증 로직은 재사용 가능하면 `core/utils/validators.py`에 `Annotated[타입, AfterValidator(함수)]` 형태로 정의 (클래스로 감싸지 않음 — 상태 없는 순수 함수는 모듈 레벨 함수로 충분)
 - 랜덤 값(OTP, 토큰 등)은 `random`이 아닌 `secrets` 모듈 사용 (암호학적으로 안전)
-- Redis 키 네이밍은 앱별 `redis.py`에 클래스 메서드로 정의 (예: `EmailRedis.code(email)`)
-- 테스트: `tests/` 디렉토리에 `app/` 구조 미러링, `pytest` + `pytest-asyncio`(`asyncio_mode = "auto"`), 라우터 테스트는 `tests/conftest.py`의 `client`(httpx `AsyncClient`) fixture 사용
+- Redis 키 네이밍은 앱별 `utils/redis.py`에 클래스 메서드로 정의 (예: `EmailRedis.code(email)`)
+- 테스트: `tests/` 디렉토리에 `app/` 구조 미러링, `test_routers/`/`test_schemas/`/`test_services/` 하위 폴더에 기능(엔드포인트) 단위로 파일 분리 (예: `test_routers/test_signup.py`). `pytest` + `pytest-asyncio`(`asyncio_mode = "auto"`), 라우터 테스트는 `tests/conftest.py`의 `client`(httpx `AsyncClient`) fixture 사용
+- `unittest.mock.patch("app.auth.services.email.send_email", ...)`처럼 모듈 경로를 문자열로 지정하는 곳은 리팩토링/파일 이동 시 정적 분석 도구가 못 잡아주니 수동으로 같이 고쳐야 함 (실제로 `service/` → `services/` 리네임 때 `conftest.py`의 `patch()` 경로만 누락되어 테스트가 깨졌던 적 있음)
 - MVP 단계에서는 라우터(view) 테스트 위주로 작성, 모델 단위 테스트는 후순위

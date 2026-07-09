@@ -24,11 +24,13 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 ```
 app/
 ├── auth/                # 회원가입, 로그인, 이메일 인증
-│   ├── router.py        # 엔드포인트
-│   ├── service.py       # 비즈니스 로직 (OTP 발송/검증 등)
+│   ├── router.py        # 엔드포인트 (라우팅 배선만)
 │   ├── models.py        # User, RefreshToken
-│   ├── schemas.py       # 요청/응답 Pydantic 스키마
-│   └── redis.py         # Redis 키 네이밍 (EmailRedis)
+│   ├── schemas/         # 요청/응답 Pydantic 스키마 (기능별 분리: email.py, signup.py 등)
+│   ├── services/        # 비즈니스 로직 (기능별 분리: email.py, signup.py 등)
+│   └── utils/
+│       ├── redis.py     # Redis 키 네이밍 (EmailRedis)
+│       └── responses.py # 엔드포인트별 OpenAPI 에러 응답 문서
 ├── products/            # 상품 CRUD
 │   └── models.py        # Product, ProductImage
 ├── cart/                # 장바구니 (Redis 기반, 테이블 없음)
@@ -39,7 +41,7 @@ app/
 │   ├── database.py      # SQLAlchemy async engine/session, BaseModel(ULID PK)
 │   ├── redis.py          # Redis 비동기 클라이언트
 │   └── utils/
-│       ├── security.py   # OTP/토큰 생성 함수
+│       ├── security.py   # OTP/토큰 생성, 비밀번호 해싱 함수
 │       └── validators.py # 재사용 가능한 Pydantic 검증 타입 (EmailField 등)
 └── main.py
 ```
