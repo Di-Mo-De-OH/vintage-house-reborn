@@ -4,8 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models import User
-from app.auth.redis import EmailRedis
-from app.auth.schemas import SignUpRequest
+from app.auth.schemas.signup import SignUpRequest
+from app.auth.utils.redis import EmailRedis
 from app.core.redis import redis_client
 from app.core.utils.security import hash_password
 

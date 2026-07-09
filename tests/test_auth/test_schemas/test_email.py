@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.auth.schemas import SendEmailRequest, VerifyEmailRequest
+from app.auth.schemas.email import SendEmailRequest, VerifyEmailRequest
 
 
 def test_send_email_request_valid() -> None:
