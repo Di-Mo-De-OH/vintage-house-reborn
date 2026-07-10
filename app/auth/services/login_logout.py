@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import status
 from fastapi.exceptions import HTTPException
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,3 +44,17 @@ async def login(db: AsyncSession, request: LoginRequest) -> tuple[LoginResponse,
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=SERVICE_UNAVAILABLE_DETAIL)
 
     return LoginResponse(access_token=access_token), refresh_token
+
+
+async def logout(db: AsyncSession, refresh_token: str | None) -> None:
+    if refresh_token is None:
+        return
+    try:
+        await db.execute(delete(RefreshToken).where(RefreshToken.token_hash == hash_refresh_token(refresh_token)))
+        await db.commit()
+    except SQLAlchemyError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.",
+        )
