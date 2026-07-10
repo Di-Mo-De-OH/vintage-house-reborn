@@ -10,3 +10,9 @@ class EmailRedis:
     @classmethod
     def cooldown(cls, email: str) -> str:
         return f"email:cooldown:{email}"
+
+
+class LogoutRedis:
+    @classmethod
+    def blacklist(cls, jwi: str) -> str:
+        return f"access:blacklist:{jwi}"

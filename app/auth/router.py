@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Response, status
+from fastapi import APIRouter, Cookie, Depends, Response, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.auth.models import User
 from app.auth.schemas.email import SendEmailRequest, VerifyEmailRequest, VerifyEmailResponse
@@ -20,6 +21,8 @@ from app.core.config import settings
 from app.core.database import DbSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+optional_bearer = HTTPBearer(auto_error=False)
 
 
 @router.post(
@@ -67,7 +70,11 @@ async def login_router(request: LoginRequest, response: Response, db: DbSession)
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, responses=LOGOUT_RESPONSES)
 async def logout_router(
-    db: DbSession, response: Response, refresh_token: Annotated[str | None, Cookie()] = None
+    db: DbSession,
+    response: Response,
+    refresh_token: Annotated[str | None, Cookie()] = None,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(optional_bearer)] = None,
 ) -> None:
-    await logout(db, refresh_token)
+    access_token = credentials.credentials if credentials else None
+    await logout(db, refresh_token, access_token)
     response.delete_cookie("refresh_token")
