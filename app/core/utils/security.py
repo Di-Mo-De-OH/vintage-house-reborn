@@ -1,6 +1,7 @@
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import bcrypt
 import jwt
@@ -29,8 +30,12 @@ def verify_password(password: str, hashed_password: str) -> bool:
 def create_access_token(user_id: str) -> str:
     """기존 jwt 방식을 사용한 access_token 생성 함수"""
     expire_time = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode = {"exp": expire_time, "user_id": user_id}
+    to_encode = {"exp": expire_time, "user_id": user_id, "jti": secrets.token_hex(16)}
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def decode_access_token(token: str) -> dict[str, Any]:
+    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
 
 
 def generate_refresh_token() -> str:
