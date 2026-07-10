@@ -1,11 +1,14 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from app.auth.models import User
 from app.auth.schemas.email import SendEmailRequest, VerifyEmailRequest, VerifyEmailResponse
+from app.auth.schemas.login_logout import LoginRequest, LoginResponse
 from app.auth.schemas.signup import SignUpRequest, SignUpResponse
 from app.auth.services.email import send_verification_email, verify_email
+from app.auth.services.login_logout import login
 from app.auth.services.signup import signup
-from app.auth.utils.responses import SEND_EMAIL_RESPONSES, SIGNUP_RESPONSES, VERIFY_EMAIL_RESPONSES
+from app.auth.utils.responses import LOGIN_RESPONSES, SEND_EMAIL_RESPONSES, SIGNUP_RESPONSES, VERIFY_EMAIL_RESPONSES
+from app.core.config import settings
 from app.core.database import DbSession
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -38,3 +41,17 @@ async def verify_email_router(request: VerifyEmailRequest, db: DbSession) -> Ver
 )
 async def signup_router(request: SignUpRequest, db: DbSession) -> User:
     return await signup(db, request)
+
+
+@router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK, responses=LOGIN_RESPONSES)
+async def login_router(request: LoginRequest, response: Response, db: DbSession) -> LoginResponse:
+    login_response, refresh_token = await login(db, request)
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=60 * 60 * 24 * settings.REFRESH_TOKEN_EXPIRE_DAYS,
+    )
+    return login_response

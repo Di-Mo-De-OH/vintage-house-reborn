@@ -35,3 +35,11 @@ SIGNUP_RESPONSES: dict[int | str, dict[str, Any]] = {
     },
     status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
 }
+
+LOGIN_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status.HTTP_401_UNAUTHORIZED: {
+        "description": "이메일 또는 비밀번호 불일치",
+        "content": {"application/json": {"example": {"detail": "아이디 또는 비밀번호가 틀렸습니다."}}},
+    },
+    status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
+}
