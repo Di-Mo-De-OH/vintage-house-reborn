@@ -1,13 +1,21 @@
-from fastapi import APIRouter, Response, status
+from typing import Annotated
+
+from fastapi import APIRouter, Cookie, Response, status
 
 from app.auth.models import User
 from app.auth.schemas.email import SendEmailRequest, VerifyEmailRequest, VerifyEmailResponse
 from app.auth.schemas.login_logout import LoginRequest, LoginResponse
 from app.auth.schemas.signup import SignUpRequest, SignUpResponse
 from app.auth.services.email import send_verification_email, verify_email
-from app.auth.services.login_logout import login
+from app.auth.services.login_logout import login, logout
 from app.auth.services.signup import signup
-from app.auth.utils.responses import LOGIN_RESPONSES, SEND_EMAIL_RESPONSES, SIGNUP_RESPONSES, VERIFY_EMAIL_RESPONSES
+from app.auth.utils.responses import (
+    LOGIN_RESPONSES,
+    LOGOUT_RESPONSES,
+    SEND_EMAIL_RESPONSES,
+    SIGNUP_RESPONSES,
+    VERIFY_EMAIL_RESPONSES,
+)
 from app.core.config import settings
 from app.core.database import DbSession
 
@@ -55,3 +63,11 @@ async def login_router(request: LoginRequest, response: Response, db: DbSession)
         max_age=60 * 60 * 24 * settings.REFRESH_TOKEN_EXPIRE_DAYS,
     )
     return login_response
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT, responses=LOGOUT_RESPONSES)
+async def logout_router(
+    db: DbSession, response: Response, refresh_token: Annotated[str | None, Cookie()] = None
+) -> None:
+    await logout(db, refresh_token)
+    response.delete_cookie("refresh_token")

@@ -43,3 +43,7 @@ LOGIN_RESPONSES: dict[int | str, dict[str, Any]] = {
     },
     status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
 }
+
+LOGOUT_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
+}
