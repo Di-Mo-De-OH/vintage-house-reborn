@@ -9,10 +9,12 @@ from app.auth.schemas.login_logout import LoginRequest, LoginResponse
 from app.auth.schemas.signup import SignUpRequest, SignUpResponse
 from app.auth.services.email import send_verification_email, verify_email
 from app.auth.services.login_logout import login, logout
+from app.auth.services.refresh import refresh
 from app.auth.services.signup import signup
 from app.auth.utils.responses import (
     LOGIN_RESPONSES,
     LOGOUT_RESPONSES,
+    REFRESH_RESPONSES,
     SEND_EMAIL_RESPONSES,
     SIGNUP_RESPONSES,
     VERIFY_EMAIL_RESPONSES,
@@ -40,7 +42,7 @@ async def send_email_router(request: SendEmailRequest) -> None:
     status_code=status.HTTP_200_OK,
     responses=VERIFY_EMAIL_RESPONSES,
 )
-async def verify_email_router(request: VerifyEmailRequest, db: DbSession) -> VerifyEmailResponse:
+async def verify_email_router(db: DbSession, request: VerifyEmailRequest) -> VerifyEmailResponse:
     return await verify_email(db, request.email, request.code)
 
 
@@ -50,12 +52,12 @@ async def verify_email_router(request: VerifyEmailRequest, db: DbSession) -> Ver
     status_code=status.HTTP_201_CREATED,
     responses=SIGNUP_RESPONSES,
 )
-async def signup_router(request: SignUpRequest, db: DbSession) -> User:
+async def signup_router(db: DbSession, request: SignUpRequest) -> User:
     return await signup(db, request)
 
 
 @router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK, responses=LOGIN_RESPONSES)
-async def login_router(request: LoginRequest, response: Response, db: DbSession) -> LoginResponse:
+async def login_router(db: DbSession, request: LoginRequest, response: Response) -> LoginResponse:
     login_response, refresh_token = await login(db, request)
     response.set_cookie(
         key="refresh_token",
@@ -78,3 +80,12 @@ async def logout_router(
     access_token = credentials.credentials if credentials else None
     await logout(db, refresh_token, access_token)
     response.delete_cookie("refresh_token")
+
+
+@router.post(
+    "/refresh",
+    status_code=status.HTTP_200_OK,
+    responses=REFRESH_RESPONSES,
+)
+async def refresh_router(db: DbSession, refresh_token: Annotated[str | None, Cookie()] = None) -> LoginResponse:
+    return await refresh(db, refresh_token)
