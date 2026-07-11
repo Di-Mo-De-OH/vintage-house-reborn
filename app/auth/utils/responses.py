@@ -47,3 +47,11 @@ LOGIN_RESPONSES: dict[int | str, dict[str, Any]] = {
 LOGOUT_RESPONSES: dict[int | str, dict[str, Any]] = {
     status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
 }
+
+REFRESH_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status.HTTP_401_UNAUTHORIZED: {
+        "description": "리프레시 토큰 없음, 만료 또는 유효하지 않음",
+        "content": {"application/json": {"example": {"detail": "다시 로그인해주세요."}}},
+    },
+    status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
+}
