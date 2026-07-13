@@ -68,6 +68,23 @@ core/
 - 비밀번호 등 민감정보는 **저장 위치를 하나로 통일** (예: `DATABASE_URL`을 별도 값으로 안 두고 `POSTGRES_PASSWORD` 등 컴포넌트에서 조합 — 중복 저장 시 값이 어긋나는 사고 경험함)
 - URL에 비밀번호를 조합할 때는 `urllib.parse.quote()`로 이스케이프 (비밀번호에 `/`, `+` 등 특수문자 포함 시 URL 파싱이 깨짐)
 
+## 구현 현황
+
+**완료**
+- 인증: 이메일 인증 발송/검증(OTP), 회원가입, 로그인/로그아웃(JWT + 블랙리스트), 토큰 재발급, `/me`(조회/수정/탈퇴)
+- 권한: `User.is_admin` + 3단계 의존성(`get_user_id`/`get_user`/`get_admin_user`)
+- 인프라: Docker Compose(로컬/서버), CI(lint+test), CD(빌드→배포), nginx+Let's Encrypt HTTPS, EC2 Elastic IP
+
+**진행 예정 (다음 작업)**
+- 상품 CRUD (`app/products/`) — 관리자 전용 생성/수정/삭제(`get_admin_user`), 조회는 공개
+- 상품 이미지 업로드 — AWS S3 Presigned URL 발급 방식 (서버 부하 없이 클라이언트 직접 업로드)
+- 장바구니 (`app/cart/`, Redis 기반, 테이블 없음)
+- 결제 (`app/payments/`, 토스페이먼츠)
+
+**MVP 이후로 미룸**
+- 비밀번호 변경/재설정
+- 이메일 인증 코드 대조 시도 횟수 제한(rate limiting)
+
 ## 브랜치 전략
 
 ```
