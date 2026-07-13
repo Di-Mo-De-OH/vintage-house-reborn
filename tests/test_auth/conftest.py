@@ -33,3 +33,16 @@ async def test_user(db: AsyncSession) -> User:
     db.add(user)
     await db.commit()
     return user
+
+
+@pytest.fixture
+async def test_user2(db: AsyncSession) -> User:
+    user = User(
+        email="test2@example.com",
+        hashed_password=hash_password("Password@1"),
+        name="test2",
+        nickname="test2",
+    )
+    db.add(user)
+    await db.commit()
+    return user
