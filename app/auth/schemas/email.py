@@ -1,17 +1,17 @@
 import re
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.core.utils.validators import EmailField
 
 
 class SendEmailRequest(BaseModel):
-    email: EmailField
+    email: EmailField = Field(examples=["test@example.com"])
 
 
 class VerifyEmailRequest(BaseModel):
-    email: EmailField
-    code: str
+    email: EmailField = Field(examples=["test@example.com"])
+    code: str = Field(examples=["123456"])
 
     @field_validator("code")
     @classmethod
@@ -22,4 +22,4 @@ class VerifyEmailRequest(BaseModel):
 
 
 class VerifyEmailResponse(BaseModel):
-    verify_token: str
+    verify_token: str = Field(examples=["Ab3dEfGhIjKlMnOpQrStUvWx1234"])

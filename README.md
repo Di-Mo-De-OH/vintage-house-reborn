@@ -23,17 +23,26 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 
 ```
 app/
-├── auth/           # 회원가입, 로그인
-│   ├── router.py   # 엔드포인트
-│   ├── service.py  # 비즈니스 로직
-│   ├── models.py   # SQLAlchemy 모델
-│   └── schemas.py  # Pydantic 스키마
-├── products/       # 상품 CRUD (auth와 동일 구조)
-├── cart/           # 장바구니 (auth와 동일 구조)
-├── payments/       # 결제 (auth와 동일 구조)
-├── core/           # 공용 기술 (설정, DB 연결 등)
-│   ├── config.py   # 환경변수 설정 (pydantic-settings)
-│   └── database.py # SQLAlchemy async engine/session, BaseModel
+├── auth/                # 회원가입, 로그인, 이메일 인증
+│   ├── router.py        # 엔드포인트 (라우팅 배선만)
+│   ├── models.py        # User, RefreshToken
+│   ├── schemas/         # 요청/응답 Pydantic 스키마 (기능별 분리: email.py, signup.py 등)
+│   ├── services/        # 비즈니스 로직 (기능별 분리: email.py, signup.py 등)
+│   └── utils/
+│       ├── redis.py     # Redis 키 네이밍 (EmailRedis)
+│       └── responses.py # 엔드포인트별 OpenAPI 에러 응답 문서
+├── products/            # 상품 CRUD
+│   └── models.py        # Product, ProductImage
+├── cart/                # 장바구니 (Redis 기반, 테이블 없음)
+├── payments/            # 결제 (토스페이먼츠)
+│   └── models.py        # Order, OrderItem, Payment
+├── core/                # 공용 기술
+│   ├── config.py        # 환경변수 설정 (pydantic-settings)
+│   ├── database.py      # SQLAlchemy async engine/session, BaseModel(ULID PK)
+│   ├── redis.py          # Redis 비동기 클라이언트
+│   └── utils/
+│       ├── security.py   # OTP/토큰 생성, 비밀번호 해싱 함수
+│       └── validators.py # 재사용 가능한 Pydantic 검증 타입 (EmailField 등)
 └── main.py
 ```
 
@@ -54,6 +63,8 @@ cp env/example.env env/.env
 # env/.env 파일에 실제 값 입력
 ```
 
+필요한 환경변수 목록은 `env/example.env` 참고. `DATABASE_URL`/`REDIS_URL`은 직접 입력하지 않고, `POSTGRES_*`/`REDIS_*` 값들을 조합해서 `app/core/config.py`가 자동으로 만들어줌 (비밀번호 중복 저장으로 인한 불일치 방지).
+
 **서버 실행**
 
 ```bash
@@ -73,6 +84,22 @@ docker compose exec fastapi uv run alembic revision --autogenerate -m "메시지
 # 마이그레이션 적용
 docker compose exec fastapi uv run alembic upgrade head
 ```
+
+새 앱에 모델을 추가하면 `alembic/env.py`에도 `import app.{app_name}.models`를 추가해야 alembic이 인식함.
+
+## 데이터베이스 스키마
+
+모든 모델은 공통으로 `id`(ULID, 26자), `created_at`, `updated_at`를 가짐 (`app/core/database.py`의 `BaseModel`).
+
+| 테이블 | 설명 |
+|---|---|
+| `users` | 회원 정보 (email, nickname, address 등) |
+| `refresh_tokens` | JWT Refresh Token 저장 (해시값만 저장) |
+| `products` | 상품 (빈티지 특성상 재고 없이 `status`로 판매 상태 관리) |
+| `product_images` | 상품 이미지 (1:N, `order_number`로 노출 순서 관리) |
+| `orders` | 주문 |
+| `order_items` | 주문 상품 (구매 시점 가격 스냅샷 `price_at_purchase` 저장) |
+| `payments` | 결제 내역 (토스페이먼츠 상태값 그대로 저장) |
 
 ## 개발 명령어
 

@@ -81,12 +81,8 @@ def upgrade() -> None:
         ["product_id"],
         unique=False,
     )
-    op.drop_constraint(
-        op.f("refresh_tokens_user_id_fkey"), "refresh_tokens", type_="foreignkey"
-    )
-    op.create_foreign_key(
-        None, "refresh_tokens", "users", ["user_id"], ["id"], ondelete="CASCADE"
-    )
+    op.drop_constraint(op.f("refresh_tokens_user_id_fkey"), "refresh_tokens", type_="foreignkey")
+    op.create_foreign_key(None, "refresh_tokens", "users", ["user_id"], ["id"], ondelete="CASCADE")
     # ### end Alembic commands ###
 
 
