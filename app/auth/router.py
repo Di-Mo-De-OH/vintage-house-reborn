@@ -7,10 +7,11 @@ from app.auth.dependencies import get_user
 from app.auth.models import User
 from app.auth.schemas.email import SendEmailRequest, VerifyEmailRequest, VerifyEmailResponse
 from app.auth.schemas.login_logout import LoginRequest, LoginResponse
-from app.auth.schemas.me import MeResponse
+from app.auth.schemas.me import MeResponse, MeUpdateRequest
 from app.auth.schemas.signup import SignUpRequest, SignUpResponse
 from app.auth.services.email import send_verification_email, verify_email
 from app.auth.services.login_logout import login, logout
+from app.auth.services.me import update
 from app.auth.services.refresh import refresh
 from app.auth.services.signup import signup
 from app.auth.utils.responses import (
@@ -97,3 +98,8 @@ async def refresh_router(db: DbSession, refresh_token: Annotated[str | None, Coo
 @router.get("/me", status_code=status.HTTP_200_OK, response_model=MeResponse, responses=ME_RESPONSES)
 async def get_me(user: User = Depends(get_user)) -> User:
     return user
+
+
+@router.patch("/me", status_code=status.HTTP_200_OK, response_model=MeResponse, responses=ME_RESPONSES)
+async def update_me(db: DbSession, request: MeUpdateRequest, user: User = Depends(get_user)) -> User:
+    return await update(db, request, user)
