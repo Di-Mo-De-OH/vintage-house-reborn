@@ -18,9 +18,12 @@ from app.auth.utils.responses import (
     SEND_EMAIL_RESPONSES,
     SIGNUP_RESPONSES,
     VERIFY_EMAIL_RESPONSES,
+    ME_RESPONSES,
 )
 from app.core.config import settings
 from app.core.database import DbSession
+from app.auth.dependencies import get_user
+from app.auth.schemas.me import MeResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -89,3 +92,12 @@ async def logout_router(
 )
 async def refresh_router(db: DbSession, refresh_token: Annotated[str | None, Cookie()] = None) -> LoginResponse:
     return await refresh(db, refresh_token)
+
+@router.get(
+    "/me",
+    status_code = status.HTTP_200_OK,
+    response_model=MeResponse,
+    responses = ME_RESPONSES
+)
+async def get_me(user:User = Depends(get_user))->User:
+    return user
