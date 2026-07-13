@@ -55,3 +55,10 @@ REFRESH_RESPONSES: dict[int | str, dict[str, Any]] = {
     },
     status.HTTP_503_SERVICE_UNAVAILABLE: SERVICE_UNAVAILABLE,
 }
+
+ME_RESPONSES: dict[int | str, dict[str, Any]] = {
+    status.HTTP_401_UNAUTHORIZED: {
+        "description": "인증 토큰 없음, 만료, 로그아웃되었거나 존재하지 않는 유저",
+        "content": {"application/json": {"example": {"detail": "유효하지 않은 토큰입니다."}}},
+    },
+}
