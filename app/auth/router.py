@@ -11,7 +11,7 @@ from app.auth.schemas.me import MeResponse, MeUpdateRequest
 from app.auth.schemas.signup import SignUpRequest, SignUpResponse
 from app.auth.services.email import send_verification_email, verify_email
 from app.auth.services.login_logout import login, logout
-from app.auth.services.me import update
+from app.auth.services.me import delete, update
 from app.auth.services.refresh import refresh
 from app.auth.services.signup import signup
 from app.auth.utils.responses import (
@@ -103,3 +103,8 @@ async def get_me(user: User = Depends(get_user)) -> User:
 @router.patch("/me", status_code=status.HTTP_200_OK, response_model=MeResponse, responses=ME_RESPONSES)
 async def update_me(db: DbSession, request: MeUpdateRequest, user: User = Depends(get_user)) -> User:
     return await update(db, request, user)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT, responses=ME_RESPONSES)
+async def delete_me(db: DbSession, user: User = Depends(get_user)) -> None:
+    return await delete(db, user)

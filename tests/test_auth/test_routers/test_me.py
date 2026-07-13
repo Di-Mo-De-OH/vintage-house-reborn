@@ -1,4 +1,5 @@
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from app.auth.models import User
 
@@ -65,4 +66,21 @@ async def test_patch_me_unauthorized(client: AsyncClient) -> None:
         "/api/v1/auth/me",
         json={"nickname": "닉네임"},
     )
+    assert response.status_code == 401
+
+
+async def test_delete_me_success(client: AsyncClient, test_user: User, db: AsyncClient) -> None:
+    login_response = await client.post("/api/v1/auth/login", json={"email": test_user.email, "password": "Password@1"})
+    access_token = login_response.json()["access_token"]
+    response = await client.delete(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert response.status_code == 204
+    result = await db.execute(select(User).where(User.id == test_user.id))
+    assert result.scalar_one_or_none() is None
+
+
+async def test_delete_me_unauthorized(client: AsyncClient) -> None:
+    response = await client.delete("/api/v1/auth/me")
     assert response.status_code == 401
