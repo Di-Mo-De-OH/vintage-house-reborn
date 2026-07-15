@@ -4,29 +4,31 @@ from ulid import ULID
 
 from app.core.config import settings
 
-s3_client : S3Client = boto3.client(
+s3_client: S3Client = boto3.client(
     "s3",
-    region_name = settings.AWS_REGION,
-    aws_access_key_id = settings.AWS_ACCESS_KEY_ID,
-    aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY,
+    region_name=settings.S3_REGION,
+    aws_access_key_id=settings.S3_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.S3_SECRET_ACCESS_KEY,
 )
 
 
-def generate_object_key(prefix:str,extension:str)->str:
+def generate_object_key(prefix: str, extension: str) -> str:
     return f"{prefix}/{ULID()}.{extension}"
 
-def generate_object_upload_url(key:str, content_type: str,expires_in:int=300)->str:
+
+def generate_object_upload_url(key: str, content_type: str, expires_in: int = 300) -> str:
     return s3_client.generate_presigned_url(
         "put_object",
         Params={
             "Bucket": settings.S3_BUCKET_NAME,
-            "Key":key,
-            "ContentType":content_type,
+            "Key": key,
+            "ContentType": content_type,
         },
-            ExpiresIn= expires_in,
+        ExpiresIn=expires_in,
     )
 
-def generate_presigned_download_url(key:str,expires_in:int=300)->str:
+
+def generate_presigned_download_url(key: str, expires_in: int = 300) -> str:
     return s3_client.generate_presigned_url(
         "get_object",
         Params={
@@ -35,6 +37,7 @@ def generate_presigned_download_url(key:str,expires_in:int=300)->str:
         },
         ExpiresIn=expires_in,
     )
+
 
 def delete_object(key: str) -> None:
     s3_client.delete_object(Bucket=settings.S3_BUCKET_NAME, Key=key)

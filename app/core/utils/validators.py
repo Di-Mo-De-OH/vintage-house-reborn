@@ -43,10 +43,12 @@ def validate_password(password: str) -> str:
         raise ValueError("비밀번호는 특수문자를 포함해야 합니다.")
     return password
 
-def validate_image_content_type(content_type:str)->str:
+
+def validate_image_content_type(content_type: str) -> str:
     if content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
         raise ValueError("허용된 이미지 형식이 아닙니다. (jpeg,png,webp,gif만 가능)")
     return content_type
+
 
 PasswordField = Annotated[str, AfterValidator(validate_password)]
 NicknameField = Annotated[str, AfterValidator(validate_nickname)]
