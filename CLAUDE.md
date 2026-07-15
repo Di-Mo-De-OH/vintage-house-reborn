@@ -151,7 +151,8 @@ TOSS_CLIENT_KEY=
 - `docker-compose.yml` — 로컬 개발용 (build: ., --reload)
 - `docker-compose.prod.yml` — 서버 배포용 (Docker Hub 이미지, restart: always). `db`/`redis`/`fastapi` 외에 `nginx`(리버스 프록시+HTTPS), `certbot`(인증서 갱신용, 상시 실행 아님) 서비스 포함
 - EC2에서는 `docker-compose`(하이픈) v2 사용 (`/usr/local/bin/docker-compose`)
-- **알려진 이슈**: `docker-compose.yml`이 `.:/app`으로 프로젝트 전체(`.venv` 포함)를 바인드 마운트해서, 호스트에서 `uv run`을 직접 돌리면(예: 스크립트 검증) 컨테이너의 `.venv`와 충돌해 개발 패키지(mypy 등)가 깨질 수 있음 — 증상 발생 시 `docker compose exec fastapi uv sync --all-groups`(필요하면 `--reinstall`)로 복구. 근본적으로는 `.venv`를 익명 볼륨(`/app/.venv`)으로 분리하면 해결되지만, 아직 반영 안 함
+- `docker-compose.yml`은 `.:/app` 바인드 마운트에 `/app/.venv` 익명 볼륨을 추가로 얹어서, 컨테이너의 `.venv`(리눅스용)와 호스트의 `.venv`(macOS용)를 분리함 — 그래서 호스트에서 `uv sync`/`uv add` 등을 직접 돌려도 컨테이너 쪽 `.venv`는 안 깨짐. IDE(VSCode 등) 인터프리터는 호스트 `.venv/bin/python`을 그대로 잡으면 됨
+- **알려진 이슈**: 컨테이너가 떠 있는 상태에서 호스트 쪽 `.venv`를 지우려고 하면 `Permission denied`가 날 수 있음 (Docker Desktop이 익명 볼륨 분리를 위해 그 경로를 붙잡고 있는 것으로 추정) — `docker compose down`으로 컨테이너를 완전히 내린 뒤 `rm -rf .venv && uv sync --all-groups`로 재생성하면 해결됨
 
 ## CI/CD
 
@@ -214,10 +215,16 @@ TOSS_CLIENT_KEY=
 | `SMTP_PORT` | `465` |
 | `SMTP_USER` | 네이버 이메일 주소 |
 | `SMTP_PASSWORD` | 네이버 애플리케이션 비밀번호 (로그인 비밀번호 아님) |
+| `S3_BUCKET_NAME` | 상품 이미지 버킷 이름 (`vintage-house-reborn-images`) |
+| `S3_REGION` | `ap-northeast-2` |
+| `S3_ACCESS_KEY_ID` | IAM 액세스 키 (`vintage-house-app` 유저, 해당 버킷 전용 최소 권한) |
+| `S3_SECRET_ACCESS_KEY` | IAM 시크릿 키 (`vintage-house-app` 유저) |
 | `DISCORD_WEBHOOK_CI` | CI 결과 알림 웹훅 |
 | `DISCORD_WEBHOOK_CD` | 배포 결과 알림 웹훅 |
 
 `DATABASE_URL`/`REDIS_URL`은 Secret으로 관리하지 않음 (컴포넌트 조합 방식으로 변경, 위 참고). 토스페이먼츠 Secret은 코드 작성 후 추가 예정.
+
+`S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`는 EC2 배포용 `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`(github-actions 유저)와 별개 — 최소 권한 원칙상 이 버킷에만 접근 가능한 전용 IAM 유저(`vintage-house-app`)의 키를 사용함.
 
 ### Redis 보안
 - `docker-compose.prod.yml`에서 Redis는 호스트에 포트 노출 안 함 (내부 docker network로만 접근)

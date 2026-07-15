@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     SMTP_USER: str
     SMTP_PASSWORD: str
 
+    S3_BUCKET_NAME: str
+    S3_REGION: str
+    S3_ACCESS_KEY_ID: str
+    S3_SECRET_ACCESS_KEY: str
+
     @property
     def DATABASE_URL(self) -> str:
         password = quote(self.POSTGRES_PASSWORD, safe="")
