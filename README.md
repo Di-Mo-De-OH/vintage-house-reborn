@@ -12,9 +12,18 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 - **패키지 관리**: uv
 - **Infra**: Docker, Docker Compose, AWS EC2
 
+## 배포
+
+- **API 문서(운영)**: https://api.ohdimode.com/docs
+- HTTPS(Let's Encrypt) + nginx 리버스 프록시, AWS EC2(Elastic IP 고정) 배포
+
 ## 주요 기능
 
-- 회원가입 / 로그인 (JWT 인증)
+- 이메일 인증 기반 회원가입
+- 로그인 / 로그아웃 (JWT 액세스 토큰 + 리프레시 토큰, 로그아웃 시 액세스 토큰 블랙리스트)
+- 리프레시 토큰으로 액세스 토큰 재발급
+- 내 정보 조회 / 수정 / 회원 탈퇴 (`/me`)
+- 관리자 권한 구분 (`User.is_admin`)
 - 상품 CRUD
 - 장바구니 (Redis)
 - 결제 (토스페이먼츠)
@@ -23,13 +32,14 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 
 ```
 app/
-├── auth/                # 회원가입, 로그인, 이메일 인증
+├── auth/                # 회원가입, 로그인/로그아웃, 토큰 재발급, 내 정보(/me), 이메일 인증
 │   ├── router.py        # 엔드포인트 (라우팅 배선만)
-│   ├── models.py        # User, RefreshToken
-│   ├── schemas/         # 요청/응답 Pydantic 스키마 (기능별 분리: email.py, signup.py 등)
-│   ├── services/        # 비즈니스 로직 (기능별 분리: email.py, signup.py 등)
+│   ├── models.py        # User(is_admin 포함), RefreshToken
+│   ├── dependencies.py  # 인증/권한 의존성 (get_user_id/get_user/get_admin_user), 다른 앱에서도 재사용
+│   ├── schemas/         # 요청/응답 Pydantic 스키마 (기능별 분리: email.py, signup.py, me.py 등)
+│   ├── services/        # 비즈니스 로직 (기능별 분리: email.py, signup.py, me.py 등)
 │   └── utils/
-│       ├── redis.py     # Redis 키 네이밍 (EmailRedis)
+│       ├── redis.py     # Redis 키 네이밍 (EmailRedis, LogoutRedis)
 │       └── responses.py # 엔드포인트별 OpenAPI 에러 응답 문서
 ├── products/            # 상품 CRUD
 │   └── models.py        # Product, ProductImage
@@ -93,7 +103,7 @@ docker compose exec fastapi uv run alembic upgrade head
 
 | 테이블 | 설명 |
 |---|---|
-| `users` | 회원 정보 (email, nickname, address 등) |
+| `users` | 회원 정보 (email, nickname, address, is_admin 등) |
 | `refresh_tokens` | JWT Refresh Token 저장 (해시값만 저장) |
 | `products` | 상품 (빈티지 특성상 재고 없이 `status`로 판매 상태 관리) |
 | `product_images` | 상품 이미지 (1:N, `order_number`로 노출 순서 관리) |

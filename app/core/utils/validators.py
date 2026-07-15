@@ -15,6 +15,8 @@ PASSWORD_UPPERCASE_PATTERN = re.compile(r"[A-Z]")
 PASSWORD_DIGIT_PATTERN = re.compile(r"\d")
 PASSWORD_SPECIAL_PATTERN = re.compile(r"[!@#$%^&*()]")
 
+ALLOWED_IMAGE_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+
 
 def validate_email(email: str) -> str:
     if not EMAIL_PATTERN.fullmatch(email):
@@ -42,6 +44,13 @@ def validate_password(password: str) -> str:
     return password
 
 
+def validate_image_content_type(content_type: str) -> str:
+    if content_type not in ALLOWED_IMAGE_CONTENT_TYPES:
+        raise ValueError("허용된 이미지 형식이 아닙니다. (jpeg,png,webp,gif만 가능)")
+    return content_type
+
+
 PasswordField = Annotated[str, AfterValidator(validate_password)]
 NicknameField = Annotated[str, AfterValidator(validate_nickname)]
 EmailField = Annotated[str, AfterValidator(validate_email)]
+ImageContentTypeField = Annotated[str, AfterValidator(validate_image_content_type)]
