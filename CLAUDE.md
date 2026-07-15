@@ -151,7 +151,8 @@ TOSS_CLIENT_KEY=
 - `docker-compose.yml` — 로컬 개발용 (build: ., --reload)
 - `docker-compose.prod.yml` — 서버 배포용 (Docker Hub 이미지, restart: always). `db`/`redis`/`fastapi` 외에 `nginx`(리버스 프록시+HTTPS), `certbot`(인증서 갱신용, 상시 실행 아님) 서비스 포함
 - EC2에서는 `docker-compose`(하이픈) v2 사용 (`/usr/local/bin/docker-compose`)
-- **알려진 이슈**: `docker-compose.yml`이 `.:/app`으로 프로젝트 전체(`.venv` 포함)를 바인드 마운트해서, 호스트에서 `uv run`을 직접 돌리면(예: 스크립트 검증) 컨테이너의 `.venv`와 충돌해 개발 패키지(mypy 등)가 깨질 수 있음 — 증상 발생 시 `docker compose exec fastapi uv sync --all-groups`(필요하면 `--reinstall`)로 복구. 근본적으로는 `.venv`를 익명 볼륨(`/app/.venv`)으로 분리하면 해결되지만, 아직 반영 안 함
+- `docker-compose.yml`은 `.:/app` 바인드 마운트에 `/app/.venv` 익명 볼륨을 추가로 얹어서, 컨테이너의 `.venv`(리눅스용)와 호스트의 `.venv`(macOS용)를 분리함 — 그래서 호스트에서 `uv sync`/`uv add` 등을 직접 돌려도 컨테이너 쪽 `.venv`는 안 깨짐. IDE(VSCode 등) 인터프리터는 호스트 `.venv/bin/python`을 그대로 잡으면 됨
+- **알려진 이슈**: 컨테이너가 떠 있는 상태에서 호스트 쪽 `.venv`를 지우려고 하면 `Permission denied`가 날 수 있음 (Docker Desktop이 익명 볼륨 분리를 위해 그 경로를 붙잡고 있는 것으로 추정) — `docker compose down`으로 컨테이너를 완전히 내린 뒤 `rm -rf .venv && uv sync --all-groups`로 재생성하면 해결됨
 
 ## CI/CD
 
