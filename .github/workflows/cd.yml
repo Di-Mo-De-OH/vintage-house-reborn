@@ -159,6 +159,10 @@ jobs:
             echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> env/.env
             echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> env/.env
             echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> env/.env
+            echo "S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}" >> env/.env
+            echo "S3_REGION=${{ secrets.S3_REGION }}" >> env/.env
+            echo "S3_ACCESS_KEY_ID=${{ secrets.S3_ACCESS_KEY_ID }}" >> env/.env
+            echo "S3_SECRET_ACCESS_KEY=${{ secrets.S3_SECRET_ACCESS_KEY }}" >> env/.env
             docker-compose --env-file env/.env -f docker-compose.prod.yml pull
             docker-compose --env-file env/.env -f docker-compose.prod.yml up -d
 

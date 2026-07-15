@@ -214,10 +214,16 @@ TOSS_CLIENT_KEY=
 | `SMTP_PORT` | `465` |
 | `SMTP_USER` | 네이버 이메일 주소 |
 | `SMTP_PASSWORD` | 네이버 애플리케이션 비밀번호 (로그인 비밀번호 아님) |
+| `S3_BUCKET_NAME` | 상품 이미지 버킷 이름 (`vintage-house-reborn-images`) |
+| `S3_REGION` | `ap-northeast-2` |
+| `S3_ACCESS_KEY_ID` | IAM 액세스 키 (`vintage-house-app` 유저, 해당 버킷 전용 최소 권한) |
+| `S3_SECRET_ACCESS_KEY` | IAM 시크릿 키 (`vintage-house-app` 유저) |
 | `DISCORD_WEBHOOK_CI` | CI 결과 알림 웹훅 |
 | `DISCORD_WEBHOOK_CD` | 배포 결과 알림 웹훅 |
 
 `DATABASE_URL`/`REDIS_URL`은 Secret으로 관리하지 않음 (컴포넌트 조합 방식으로 변경, 위 참고). 토스페이먼츠 Secret은 코드 작성 후 추가 예정.
+
+`S3_ACCESS_KEY_ID`/`S3_SECRET_ACCESS_KEY`는 EC2 배포용 `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`(github-actions 유저)와 별개 — 최소 권한 원칙상 이 버킷에만 접근 가능한 전용 IAM 유저(`vintage-house-app`)의 키를 사용함.
 
 ### Redis 보안
 - `docker-compose.prod.yml`에서 Redis는 호스트에 포트 노출 안 함 (내부 docker network로만 접근)
