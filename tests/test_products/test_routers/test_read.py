@@ -83,3 +83,48 @@ async def test_products_read_pagination(
     first_ids = {item["id"] for item in first_body["items"]}
     second_ids = {item["id"] for item in second_body["items"]}
     assert first_ids.isdisjoint(second_ids)
+
+
+## 상세조회에 관한 test 코드
+async def test_products_read_detail_success(
+    client: AsyncClient,
+    product: Product,
+) -> None:
+    response = await client.get(f"/api/v1/products/{product.id}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["id"] == product.id
+    assert body["name"] == product.name
+    assert body["description"] == product.description
+    assert body["size"] == product.size
+    assert body["price"] == product.price
+    assert body["brand"] == product.brand
+    assert body["category"] == product.category
+    assert body["status"] == product.status
+    assert len(body["images"]) == 2
+
+
+async def test_products_read_detail_none_item(
+    client: AsyncClient,
+    product: Product,
+) -> None:
+    response = await client.get("/api/v1/products/wrongid")
+    assert response.status_code == 404
+
+
+async def test_products_read_detail_hidden(
+    client: AsyncClient,
+    hidden_product: Product,
+) -> None:
+    response = await client.get(f"/api/v1/products/{hidden_product.id}")
+    assert response.status_code == 404
+
+
+async def test_products_read_detail_without_images(
+    client: AsyncClient,
+    product_without_image: Product,
+) -> None:
+    response = await client.get(f"/api/v1/products/{product_without_image.id}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["images"] == []
