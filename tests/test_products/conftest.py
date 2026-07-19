@@ -51,3 +51,39 @@ async def product(db: AsyncSession) -> Product:
         db.add(ProductImage(product_id=product.id, image_url=key, order_number=order_number))
     await db.commit()
     return product
+
+
+@pytest.fixture
+async def hidden_product(db: AsyncSession) -> Product:
+    product = Product(
+        name="product",
+        description="description",
+        size="large",
+        price=10000,
+        brand="brand",
+        category=Category.TOP,
+        status=Status.HIDDEN,
+    )
+    db.add(product)
+    await db.commit()
+
+    for order_number, key in enumerate(["products/test1.jpg", "products/test2.jpg"]):
+        db.add(ProductImage(product_id=product.id, image_url=key, order_number=order_number))
+    await db.commit()
+    return product
+
+
+@pytest.fixture
+async def product_without_image(db: AsyncSession) -> Product:
+    product = Product(
+        name="no image product",
+        description="description",
+        size="large",
+        price=10000,
+        brand="brand",
+        category=Category.TOP,
+        status=Status.ON_SALE,
+    )
+    db.add(product)
+    await db.commit()
+    return product
