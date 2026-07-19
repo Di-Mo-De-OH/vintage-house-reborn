@@ -1,10 +1,11 @@
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.s3 import generate_presigned_download_url
 from app.core.utils.pagination import CursorPage, CursorPageParams, paginate_by_cursor
 from app.products.models import Product, ProductImage, Status
-from app.products.schemas.read import ProductDisplay
+from app.products.schemas.read import ProductDetailResponse, ProductDisplay
 
 
 async def list_products(db: AsyncSession, params: CursorPageParams) -> CursorPage[ProductDisplay]:
@@ -29,3 +30,24 @@ async def list_products(db: AsyncSession, params: CursorPageParams) -> CursorPag
         for product in products
     ]
     return CursorPage(items=items, next_cursor=next_cursor)
+
+
+async def detail_product(db: AsyncSession, product_id: str) -> ProductDetailResponse:
+    product = await db.get(Product, product_id)
+    if product is None or product.status == Status.HIDDEN:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 상품을 찾을 수 없습니다.")
+    result = await db.execute(
+        select(ProductImage).where(ProductImage.product_id == product_id).order_by(ProductImage.order_number)
+    )
+    images = [generate_presigned_download_url(image.image_url) for image in result.scalars().all()]
+    return ProductDetailResponse(
+        id=product.id,
+        name=product.name,
+        description=product.description,
+        size=product.size,
+        price=product.price,
+        brand=product.brand,
+        category=product.category,
+        status=product.status,
+        images=images,
+    )

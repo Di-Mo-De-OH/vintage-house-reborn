@@ -8,10 +8,10 @@ from app.core.database import DbSession
 from app.core.s3 import PresignedUrlRequest, PresignedUrlResponse, create_presigned_upload_url
 from app.core.utils.pagination import CursorPage, CursorPageParams
 from app.products.schemas.create import ProductCreateRequest, ProductCreateResponse
-from app.products.schemas.read import ProductDisplay
+from app.products.schemas.read import ProductDetailResponse, ProductDisplay
 from app.products.services.create import create_product
-from app.products.services.read import list_products
-from app.products.utils.responses import PRODUCTS_ADMIN_RESPONSES
+from app.products.services.read import detail_product, list_products
+from app.products.utils.responses import PRODUCT_NOT_FOUND_RESPONSES, PRODUCTS_ADMIN_RESPONSES
 
 router = APIRouter(
     prefix="/products",
@@ -52,3 +52,16 @@ async def get_products(
     params: Annotated[CursorPageParams, Depends()],
 ) -> CursorPage[ProductDisplay]:
     return await list_products(db, params)
+
+
+@router.get(
+    "/{product_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=ProductDetailResponse,
+    responses=PRODUCT_NOT_FOUND_RESPONSES,
+)
+async def get_product(
+    db: DbSession,
+    product_id: str,
+) -> ProductDetailResponse:
+    return await detail_product(db, product_id)
