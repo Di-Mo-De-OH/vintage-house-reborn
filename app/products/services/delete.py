@@ -12,8 +12,8 @@ async def delete(db: AsyncSession, product_id: str) -> None:
     if not product:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="해당 상품을 찾을 수 없습니다.")
 
-    result = await db.execute(select(ProductImage).where(ProductImage.product_id == product_id))
-    for image in result.scalars().all():
+    image_result = await db.execute(select(ProductImage).where(ProductImage.product_id == product_id))
+    for image in image_result.scalars().all():
         delete_object(image.image_url)
     await db.delete(product)
     await db.commit()
