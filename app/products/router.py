@@ -11,6 +11,7 @@ from app.products.schemas.create import ProductCreateRequest, ProductCreateRespo
 from app.products.schemas.read import ProductDetailResponse, ProductDisplay
 from app.products.schemas.update import ProductUpdateRequest
 from app.products.services.create import create_product
+from app.products.services.delete import delete
 from app.products.services.read import detail_product, list_products
 from app.products.services.update import update
 from app.products.utils.responses import PRODUCT_NOT_FOUND_RESPONSES, PRODUCTS_ADMIN_RESPONSES
@@ -82,3 +83,16 @@ async def patch_product_router(
     admin: User = Depends(get_admin_user),
 ) -> ProductDetailResponse:
     return await update(db, request, product_id)
+
+
+@router.delete(
+    "/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={**PRODUCTS_ADMIN_RESPONSES, **PRODUCT_NOT_FOUND_RESPONSES},
+)
+async def delete_product_router(
+    db: DbSession,
+    product_id: str,
+    admin: User = Depends(get_admin_user),
+) -> None:
+    return await delete(db, product_id)
