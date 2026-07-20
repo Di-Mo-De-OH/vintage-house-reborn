@@ -13,6 +13,11 @@ class ProductDisplay(BaseModel):
     status: Status = Field(examples=["ON_SALE"])
 
 
+class ProductImageItem(BaseModel):
+    key: str
+    url: str
+
+
 class ProductDetailResponse(BaseModel):
     id: str = Field(examples=["01K8X...abc"])
     name: str = Field(examples=["상품명"])
@@ -22,4 +27,4 @@ class ProductDetailResponse(BaseModel):
     brand: str | None = Field(default=None, examples=["나이키"])
     category: Category = Field(examples=["TOP"])
     status: Status = Field(examples=["ON_SALE"])
-    images: list[str] = Field(examples=[["https://...", "https://..."]])
+    images: list[ProductImageItem] = Field(examples=[[{"key": "products/01K8X...abc.jpg", "url": "https://..."}]])
