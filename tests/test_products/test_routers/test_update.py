@@ -2,12 +2,11 @@ from httpx import AsyncClient
 
 from app.auth.models import User
 from app.products.models import Product
+from tests.utils import login
 
 
 async def test_update_success(client: AsyncClient, admin_user: User, product: Product) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
 
     response = await client.patch(
         f"/api/v1/products/{product.id}",
@@ -34,11 +33,7 @@ async def test_update_success(client: AsyncClient, admin_user: User, product: Pr
 
 
 async def test_update_forbidden_for_non_admin(client: AsyncClient, normal_user: User, product: Product) -> None:
-    login_response = await client.post(
-        "/api/v1/auth/login", json={"email": normal_user.email, "password": "Password@1"}
-    )
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, normal_user)
     response = await client.patch(
         f"/api/v1/products/{product.id}",
         headers=headers,
@@ -60,9 +55,7 @@ async def test_update_unauthorized(client: AsyncClient, product: Product) -> Non
 
 
 async def test_update_non_product(client: AsyncClient, admin_user: User, product: Product) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
     response = await client.patch(
         "/api/v1/products/worng.id",
         headers=headers,
@@ -74,9 +67,7 @@ async def test_update_non_product(client: AsyncClient, admin_user: User, product
 
 
 async def test_update_one_product_change(client: AsyncClient, admin_user: User, product: Product) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
     response = await client.patch(
         f"/api/v1/products/{product.id}",
         headers=headers,
@@ -99,9 +90,7 @@ async def test_update_one_product_change(client: AsyncClient, admin_user: User, 
 
 
 async def test_update_invalid(client: AsyncClient, admin_user: User, product: Product) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
     response = await client.patch(
         f"/api/v1/products/{product.id}",
         headers=headers,

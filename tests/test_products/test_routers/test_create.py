@@ -2,12 +2,11 @@ from httpx import AsyncClient
 
 from app.auth.models import User
 from app.products.models import Category
+from tests.utils import login
 
 
 async def test_create_success(client: AsyncClient, admin_user: User) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
 
     response = await client.post(
         "/api/v1/products",
@@ -29,11 +28,7 @@ async def test_create_success(client: AsyncClient, admin_user: User) -> None:
 
 
 async def test_create_forbidden_for_non_admin(client: AsyncClient, normal_user: User) -> None:
-    login_response = await client.post(
-        "/api/v1/auth/login", json={"email": normal_user.email, "password": "Password@1"}
-    )
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, normal_user)
     response = await client.post(
         "/api/v1/products",
         headers=headers,
@@ -67,9 +62,7 @@ async def test_create_unauthorized(client: AsyncClient) -> None:
 
 
 async def test_create_invalid_category(client: AsyncClient, admin_user: User) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
     response = await client.post(
         "/api/v1/products",
         headers=headers,
@@ -86,9 +79,7 @@ async def test_create_invalid_category(client: AsyncClient, admin_user: User) ->
 
 
 async def test_create_invalid_image_keys(client: AsyncClient, admin_user: User) -> None:
-    login_response = await client.post("/api/v1/auth/login", json={"email": admin_user.email, "password": "Password@1"})
-    access_token = login_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {access_token}"}
+    headers = await login(client, admin_user)
     response = await client.post(
         "/api/v1/products",
         headers=headers,
