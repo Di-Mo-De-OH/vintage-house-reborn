@@ -67,6 +67,10 @@ core/
 - 새 모델 추가 시 `alembic/env.py`에 `import app.{app}.models` 추가해야 autogenerate가 인식함
 - 비밀번호 등 민감정보는 **저장 위치를 하나로 통일** (예: `DATABASE_URL`을 별도 값으로 안 두고 `POSTGRES_PASSWORD` 등 컴포넌트에서 조합 — 중복 저장 시 값이 어긋나는 사고 경험함)
 - URL에 비밀번호를 조합할 때는 `urllib.parse.quote()`로 이스케이프 (비밀번호에 `/`, `+` 등 특수문자 포함 시 URL 파싱이 깨짐)
+- **빈티지 샵 도메인 특성**: 상품은 전부 1개씩만 존재(재고/수량 개념 없음). `Product`/`ProductImage`/`Cart`에 quantity 필드가 아예 없는 게 정상. 두 유저가 동시에 같은 상품을 각자 장바구니에 담는 동시성 문제는 장바구니 단계에서 막지 않고, 결제 단계에서 `status == ON_SALE` 최종 재확인으로 거르기로 함
+- **상품 이미지는 S3 presigned URL 방식** — 버킷은 완전 비공개. `ProductImage.image_url` 컬럼엔 실제로는 **S3 key**가 저장됨(이름은 image_url이지만 URL이 아님). 조회할 때마다 `generate_presigned_download_url(key)`로 매번 새로 서명된 URL을 만들어서 내려줌 (고정 공개 URL이 없어서). 상세 조회 응답은 `{key, url}` 둘 다 내려줘야, 클라이언트가 "이 이미지는 유지"를 나중에 PATCH 요청에 다시 넣어줄 수 있음(부분 이미지 수정 시 필요)
+- 커서 기반 페이지네이션 공통 유틸: `app/core/utils/pagination.py` (`CursorPage`, `CursorPageParams`, `paginate_by_cursor`). `BaseModel.id`가 ULID(시간순 정렬)라 별도 `created_at` 커서 없이 `id` 하나로 처리
+- PATCH(부분 수정) 패턴: `request.model_dump(exclude_unset=True)`로 "클라이언트가 실제로 보낸 필드만" 걸러서 `setattr(obj, key, value)` 루프. `exclude_unset`은 값이 `None`인지가 아니라 **필드가 요청에 포함됐는지**로 판단 (`null` 명시적으로 보내면 반영됨, 아예 안 보내면 기존 값 유지)
 
 ## 구현 현황
 
@@ -74,12 +78,14 @@ core/
 - 인증: 이메일 인증 발송/검증(OTP), 회원가입, 로그인/로그아웃(JWT + 블랙리스트), 토큰 재발급, `/me`(조회/수정/탈퇴)
 - 권한: `User.is_admin` + 3단계 의존성(`get_user_id`/`get_user`/`get_admin_user`)
 - 인프라: Docker Compose(로컬/서버), CI(lint+test), CD(빌드→배포), nginx+Let's Encrypt HTTPS, EC2 Elastic IP
+- S3 인프라: 버킷/IAM(`vintage-house-app`, PutObject/GetObject/DeleteObject 최소 권한) 세팅, `app/core/s3.py` presigned URL 공통 로직
+- 커서 페이지네이션 공통 유틸 (`app/core/utils/pagination.py`)
+- 상품(`app/products/`): presigned URL 발급(`PUT /products/presigned-url`), 생성/목록/상세/수정/삭제 전부 완료 (관리자 전용 쓰기, 조회는 공개, `HIDDEN` 상태는 공개 조회에서 제외)
+- 장바구니(`app/cart/`, Redis 기반, 테이블 없음): 담기(`POST /cart/{product_id}`), 조회(`GET /cart`) — TTL 7일(활동 시 갱신), 품절/삭제된 상품은 조회 시 조용히 제외
 
 **진행 예정 (다음 작업)**
-- 상품 CRUD (`app/products/`) — 관리자 전용 생성/수정/삭제(`get_admin_user`), 조회는 공개
-- 상품 이미지 업로드 — AWS S3 Presigned URL 발급 방식 (서버 부하 없이 클라이언트 직접 업로드)
-- 장바구니 (`app/cart/`, Redis 기반, 테이블 없음)
-- 결제 (`app/payments/`, 토스페이먼츠)
+- 장바구니: 개별 상품 빼기(`DELETE /cart/{product_id}`), 전체 비우기(`DELETE /cart`)
+- 결제 (`app/payments/`, 토스페이먼츠) — 아직 스캐폴딩(빈 파일)만 있고 미구현, `main.py`에 라우터 등록도 안 됨
 
 **MVP 이후로 미룸**
 - 비밀번호 변경/재설정
@@ -251,4 +257,7 @@ make check                       # 전체 검사 (format + type + test)
 - Redis 키 네이밍은 앱별 `utils/redis.py`에 클래스 메서드로 정의 (예: `EmailRedis.code(email)`)
 - 테스트: `tests/` 디렉토리에 `app/` 구조 미러링, `test_routers/`/`test_schemas/`/`test_services/` 하위 폴더에 기능(엔드포인트) 단위로 파일 분리 (예: `test_routers/test_signup.py`). `pytest` + `pytest-asyncio`(`asyncio_mode = "auto"`), 라우터 테스트는 `tests/conftest.py`의 `client`(httpx `AsyncClient`) fixture 사용
 - `unittest.mock.patch("app.auth.services.email.send_email", ...)`처럼 모듈 경로를 문자열로 지정하는 곳은 리팩토링/파일 이동 시 정적 분석 도구가 못 잡아주니 수동으로 같이 고쳐야 함 (실제로 `service/` → `services/` 리네임 때 `conftest.py`의 `patch()` 경로만 누락되어 테스트가 깨졌던 적 있음)
+- **mypy 함정**: 한 함수 안에서 서로 다른 모델을 조회하는 `db.execute()` 결과를 같은 변수명(예: `result`)으로 재사용하면 mypy가 타입을 잘못 추론함 (`"Product" has no attribute "image_url"` 같은 엉뚱한 에러). 쿼리 대상이 다르면 변수명도 다르게(`image_result` 등)
+- `core/s3.py`의 `generate_presigned_url`은 로컬 서명 계산이라 실제 네트워크 호출이 없어서 `async def`로 안 만듦(boto3 자체도 sync 라이브러리). 반면 `delete_object`는 진짜 AWS API 호출이라, 테스트에서는 `unittest.mock.patch`로 mock 처리 필요 (안 그러면 IAM 권한 문제 등으로 테스트가 실제 AWS 상태에 의존하게 됨)
+- 테스트 공용 로그인 헬퍼: `tests/utils.py`의 `login(client, user) -> dict[str, str]` (Authorization 헤더 반환). 단, **로그인/로그아웃 엔드포인트 자체를 테스트하는 곳**(`test_login_logout.py`의 로그인 성공/실패 케이스 등)은 원본 `Response` 객체(상태 코드, 쿠키 등)를 직접 봐야 해서 이 헬퍼를 안 씀 — 로그인이 "다른 엔드포인트 테스트를 위한 사전 준비"일 때만 사용
 - MVP 단계에서는 라우터(view) 테스트 위주로 작성, 모델 단위 테스트는 후순위
