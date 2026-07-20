@@ -24,9 +24,42 @@ FastAPI 기반 쇼핑몰 백엔드 API 서버
 - 리프레시 토큰으로 액세스 토큰 재발급
 - 내 정보 조회 / 수정 / 회원 탈퇴 (`/me`)
 - 관리자 권한 구분 (`User.is_admin`)
-- 상품 CRUD
-- 장바구니 (Redis)
-- 결제 (토스페이먼츠)
+- 상품 CRUD (이미지 업로드는 S3 presigned URL 방식)
+- 장바구니 (Redis, 담기/조회 — 개별 삭제·전체 비우기는 구현 예정)
+- 결제 (토스페이먼츠) — 구현 예정
+
+## API 엔드포인트
+
+**인증** (`/api/v1/auth`)
+```
+POST    /api/v1/auth/send-email
+POST    /api/v1/auth/verify-email
+POST    /api/v1/auth/signup
+POST    /api/v1/auth/login
+POST    /api/v1/auth/logout
+POST    /api/v1/auth/refresh
+GET     /api/v1/auth/me
+PATCH   /api/v1/auth/me
+DELETE  /api/v1/auth/me
+```
+
+**상품** (`/api/v1/products`)
+```
+PUT     /api/v1/products/presigned-url
+POST    /api/v1/products
+GET     /api/v1/products
+GET     /api/v1/products/{product_id}
+PATCH   /api/v1/products/{product_id}
+DELETE  /api/v1/products/{product_id}
+```
+
+**장바구니** (`/api/v1/cart`)
+```
+POST    /api/v1/cart/{product_id}
+GET     /api/v1/cart
+```
+
+전체 요청/응답 스펙은 `/docs`(Swagger UI)에서 확인 가능합니다.
 
 ## 프로젝트 구조
 

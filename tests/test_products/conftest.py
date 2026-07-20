@@ -1,9 +1,18 @@
+from collections.abc import Generator
+from unittest.mock import MagicMock, patch
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models import User
 from app.core.utils.security import hash_password
 from app.products.models import Category, Product, ProductImage, Status
+
+
+@pytest.fixture(autouse=True)
+def mock_delete_object() -> Generator[MagicMock, None, None]:
+    with patch("app.products.services.update.delete_object") as mock:
+        yield mock
 
 
 @pytest.fixture

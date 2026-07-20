@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.s3 import generate_presigned_download_url
 from app.core.utils.pagination import CursorPage, CursorPageParams, paginate_by_cursor
 from app.products.models import Product, ProductImage, Status
-from app.products.schemas.read import ProductDetailResponse, ProductDisplay
+from app.products.schemas.read import ProductDetailResponse, ProductDisplay, ProductImageItem
 
 
 async def list_products(db: AsyncSession, params: CursorPageParams) -> CursorPage[ProductDisplay]:
@@ -39,7 +39,10 @@ async def detail_product(db: AsyncSession, product_id: str) -> ProductDetailResp
     result = await db.execute(
         select(ProductImage).where(ProductImage.product_id == product_id).order_by(ProductImage.order_number)
     )
-    images = [generate_presigned_download_url(image.image_url) for image in result.scalars().all()]
+    images = [
+        ProductImageItem(key=image.image_url, url=generate_presigned_download_url(image.image_url))
+        for image in result.scalars().all()
+    ]
     return ProductDetailResponse(
         id=product.id,
         name=product.name,
