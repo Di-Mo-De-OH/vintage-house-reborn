@@ -3,6 +3,7 @@ from redis.exceptions import RedisError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.cart.schemas.add import CartAddProductResponse
 from app.cart.utils.redis import CartRedis
 from app.core.redis import redis_client
 from app.products.models import Product, Status
@@ -10,7 +11,7 @@ from app.products.models import Product, Status
 TTL = 60 * 60 * 24 * 7
 
 
-async def add(db: AsyncSession, product_id: str, user_id: str) -> None:
+async def add(db: AsyncSession, product_id: str, user_id: str) -> CartAddProductResponse:
     product_result = await db.execute(select(Product).where(Product.id == product_id))
     product = product_result.scalar_one_or_none()
     if not product:
@@ -27,3 +28,6 @@ async def add(db: AsyncSession, product_id: str, user_id: str) -> None:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요.",
         )
+    return CartAddProductResponse(
+        name=product.name,
+    )
