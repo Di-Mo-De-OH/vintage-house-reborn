@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.s3 import delete_object, generate_presigned_download_url
 from app.products.models import Product, ProductImage
-from app.products.schemas.read import ProductDetailResponse
+from app.products.schemas.read import ProductDetailResponse, ProductImageItem
 from app.products.schemas.update import ProductUpdateRequest
 
 
@@ -18,8 +18,8 @@ async def update(db: AsyncSession, request: ProductUpdateRequest, product_id: st
         setattr(product, key, value)
 
     if request.image_keys is not None:
-        result = await db.execute(select(ProductImage).where(ProductImage.product_id == product_id))
-        product_images = result.scalars().all()
+        old_image_result = await db.execute(select(ProductImage).where(ProductImage.product_id == product_id))
+        product_images = old_image_result.scalars().all()
         for old_image in product_images:
             delete_object(old_image.image_url)
             await db.delete(old_image)
@@ -31,7 +31,10 @@ async def update(db: AsyncSession, request: ProductUpdateRequest, product_id: st
     image_result = await db.execute(
         select(ProductImage).where(ProductImage.product_id == product_id).order_by(ProductImage.order_number)
     )
-    images = [generate_presigned_download_url(image.image_url) for image in image_result.scalars().all()]
+    images = [
+        ProductImageItem(key=image.image_url, url=generate_presigned_download_url(image.image_url))
+        for image in image_result.scalars().all()
+    ]
 
     return ProductDetailResponse(
         id=product.id,
