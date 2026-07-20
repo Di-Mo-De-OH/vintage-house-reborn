@@ -9,8 +9,10 @@ from app.core.s3 import PresignedUrlRequest, PresignedUrlResponse, create_presig
 from app.core.utils.pagination import CursorPage, CursorPageParams
 from app.products.schemas.create import ProductCreateRequest, ProductCreateResponse
 from app.products.schemas.read import ProductDetailResponse, ProductDisplay
+from app.products.schemas.update import ProductUpdateRequest
 from app.products.services.create import create_product
 from app.products.services.read import detail_product, list_products
+from app.products.services.update import update
 from app.products.utils.responses import PRODUCT_NOT_FOUND_RESPONSES, PRODUCTS_ADMIN_RESPONSES
 
 router = APIRouter(
@@ -25,7 +27,7 @@ router = APIRouter(
     response_model=PresignedUrlResponse,
     responses=PRODUCTS_ADMIN_RESPONSES,
 )
-async def create_products_presigned_url(
+async def create_products_presigned_url_router(
     request: PresignedUrlRequest,
     admin: User = Depends(get_admin_user),
 ) -> PresignedUrlResponse:
@@ -38,7 +40,7 @@ async def create_products_presigned_url(
     response_model=ProductCreateResponse,
     responses=PRODUCTS_ADMIN_RESPONSES,
 )
-async def create_products_post(
+async def post_products_router(
     db: DbSession,
     request: ProductCreateRequest,
     admin: User = Depends(get_admin_user),
@@ -47,7 +49,7 @@ async def create_products_post(
 
 
 @router.get("", status_code=status.HTTP_200_OK, response_model=CursorPage[ProductDisplay])
-async def get_products(
+async def get_products_router(
     db: DbSession,
     params: Annotated[CursorPageParams, Depends()],
 ) -> CursorPage[ProductDisplay]:
@@ -60,8 +62,23 @@ async def get_products(
     response_model=ProductDetailResponse,
     responses=PRODUCT_NOT_FOUND_RESPONSES,
 )
-async def get_product(
+async def get_product_router(
     db: DbSession,
     product_id: str,
 ) -> ProductDetailResponse:
     return await detail_product(db, product_id)
+
+
+@router.patch(
+    "/{product_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=ProductDetailResponse,
+    responses={**PRODUCTS_ADMIN_RESPONSES, **PRODUCT_NOT_FOUND_RESPONSES},
+)
+async def patch_product_router(
+    db: DbSession,
+    request: ProductUpdateRequest,
+    product_id: str,
+    admin: User = Depends(get_admin_user),
+) -> ProductDetailResponse:
+    return await update(db, request, product_id)

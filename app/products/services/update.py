@@ -8,7 +8,7 @@ from app.products.schemas.read import ProductDetailResponse
 from app.products.schemas.update import ProductUpdateRequest
 
 
-async def update_product(db: AsyncSession, request: ProductUpdateRequest, product_id: str) -> ProductDetailResponse:
+async def update(db: AsyncSession, request: ProductUpdateRequest, product_id: str) -> ProductDetailResponse:
     result = await db.execute(select(Product).where(Product.id == product_id))
     product = result.scalar_one_or_none()
     if not product:
